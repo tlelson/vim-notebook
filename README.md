@@ -10,11 +10,11 @@ With default vim and tmux or another terminal you might write in vim, then copy 
 
 You should know vim basics such as changing focus between vim splits, entering and exiting insert mode.
 
-Note that <Esc> does not exit insert mode in a vim terminal but <C-\><C-n> does.  I have remapped this pattern to <Esc> because i have never needed <Esc> in a shell.
+Note that `<Esc>` does not exit insert mode in a vim terminal but `<C-\><C-n>` does.  I have remapped this pattern to `<Esc>` because i have never used `<Esc>` in a shell.
 
 ## Tutorial
 
-Here is some code you can try out:
+Here is some code you can try out.  Open this file in vim:
 
 Visual highlight the following lines and run the command `:RunCell`
 
@@ -40,7 +40,7 @@ d['name']
 
 If you open up a python file, `:RunCell` (or the mapped keys) will automatically start an `ipython` shell to run the code.  If it can't find it, it will start a `python` shell.
 
-You can start any shell you want with `:OpenTerminal node`.  Once the shell is open, highlighted code will go to it for execution.  Having multiple shell types open is not supported by Vim-Notebook.
+You can start any shell you want with `:OpenTerminal <shell name>`, e.g `:OpenTerminal node` .  Once the shell is open, highlighted code will go to it for execution.  Having multiple shell types open is not supported by Vim-Notebook.
 
 By default the terminal will start below the current file but if you want to start it to the right, provide the standard vim modifier `vertical`. E.g `:vert OpenTerminal bash`.
 
