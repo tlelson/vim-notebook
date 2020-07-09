@@ -4,26 +4,23 @@
 " Define shell names for filetypes. Order sets the priority
 let s:shell = { 'python' : ['ipython', 'python'], 'javascript': ['node'] }
 
+" TODO: scope to script
 function! SafeOpenTerm(mods)
 	let term_bufnr = -1
 	let shells = ['']
-
-	" Don't know this file type → Open system shell
+	 
+	" Use default if can't guess
 	if has_key(s:shell, &filetype) == 0
-		let term_bufnr = OpenTerminal('', a:mods)
-	else " Try and open the filetype shell
-		let shells = get(s:shell, &filetype, [''])
-		for shell in shells
-			if executable(shell) > 0
-				let term_bufnr = OpenTerminal(shell, a:mods)
-				break
-			endif
-		endfor
+		return PrivateOpenTerminal('', a:mods)
 	endif
 
-	if term_bufnr < 1
-		echom "Failed to find suitable terminal from: " . join(shells, ", ")
-	endif
+	for shell in get(s:shell, &filetype, ['']) 
+		if executable(shell) > 0
+			return PrivateOpenTerminal(shell, a:mods)
+		endif
+	endfor
+	 
+	echom "Failed to find suitable terminal from: " . join(shells, ", ")
 	return term_bufnr
 endfunction
 
@@ -54,7 +51,8 @@ vnoremap <Leader>r :RunCell "<CR>
 " Have to check that `shell` exists first because even if `bash` 
 " doesn't exist it will open a terminal and use it as a command.
 " In this case, the terminal will exist and will get a buffer.
-function! OpenTerminal(shell, mods)
+" TODO: Scope to script
+function! PrivateOpenTerminal(shell, mods)
 	let mods = split(a:mods)
 
 	let horisontal_split = 1
@@ -81,14 +79,27 @@ function! OpenTerminal(shell, mods)
 	return bufnr(bufname) " -1 if not. (this never happens unfortunately)
 endfunction
 
+function! OpenTerminal(shell, mods)
+	let term_bufnr = -1
+	if a:shell !=# '' && executable(a:shell) < 1
+		echom "Failed to find shell: " . a:shell
+		return term_bufnr
+	endif
+
+	" Close existing terminals before opening a new one.
+	let term_bufnr = bufnr("notebookterm-")
+	if term_bufnr >= 0
+		execute "bdelete! " . term_bufnr
+	endif
+
+	return PrivateOpenTerminal(a:shell, a:mods)
+endfunction
+
 command -nargs=? OpenTerminal call OpenTerminal(<q-args>, <q-mods>)
 
-
 " TODO:
-"  - Map RunCell to Ctrl-<Enter>
-"  - Make sure terminal auto open works for bash
 "  - Scope functions to local or plugin
-"  - test with ipython filetype
+"  - Make `RunCell` put the terminal into insert mode before executing code
 
 " Extension bits
 " - detect shell type from code (first filetype setting then maybe advanced
