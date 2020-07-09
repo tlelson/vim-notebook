@@ -5,29 +5,30 @@
  
 
 " Define shell names for filetypes. Order sets the priority
+" TODO: Allow user settings to augment this map
 let s:shell = { 'python' : ['ipython', 'python'], 'javascript': ['node'] }
 
-function! s:safe_open_term(mods)
+function! s:safe_open_term(mods) abort
 	let term_bufnr = -1
-	let shells = ['']
 	 
 	" Use default if can't guess
 	if has_key(s:shell, &filetype) == 0
 		return s:unsafe_term('', a:mods)
 	endif
 
+	let shells = get(s:shell, &filetype, ['']) 
 	for shell in get(s:shell, &filetype, ['']) 
 		if executable(shell) > 0
 			return s:unsafe_term(shell, a:mods)
 		endif
 	endfor
 	 
-	echom "Failed to find suitable terminal from: " . join(shells, ", ")
+	call s:echoError("No suitable shell found for '" . &filetype. " from: " . join(shells, ", "))
 	return term_bufnr
 endfunction
 
 " Sends the currently selected visual selection to the terminal
-function! notebook#run_cell(startline, endline)
+function! notebook#run_cell(startline, endline) abort
 	" 0. Check if shell bufer open, if not open one
 	" if multiple shells open → error message
 	let term_bufnr = bufnr("notebookterm-")
@@ -49,7 +50,7 @@ endfunction
 " Have to check that `shell` exists first because even if `bash` 
 " doesn't exist it will open a terminal and use it as a command.
 " In this case, the terminal will exist and will get a buffer.
-function! s:unsafe_term(shell, mods)
+function! s:unsafe_term(shell, mods) abort
 	let mods = split(a:mods)
 
 	let horisontal_split = 1
@@ -76,10 +77,10 @@ function! s:unsafe_term(shell, mods)
 	return bufnr(bufname) " -1 if not. (this never happens unfortunately)
 endfunction
 
-function! notebook#terminal_start(shell, mods)
+function! notebook#terminal_start(shell, mods) abort
 	let term_bufnr = -1
 	if a:shell !=# '' && executable(a:shell) < 1
-		echom "Failed to find shell: " . a:shell
+		call s:echoError("Failed to find shell: " . a:shell)
 		return term_bufnr
 	endif
 
@@ -91,6 +92,14 @@ function! notebook#terminal_start(shell, mods)
 
 	return s:unsafe_term(a:shell, a:mods)
 endfunction
+
+" Stole this function from NERDTree
+fun! s:echoError(msg)
+    echohl errormsg
+    "call s:echo(a:msg)
+    echo a:msg
+    echohl normal
+endf 
 
 " TODO:
 "  - Make `RunCell` put the terminal into insert mode before executing code
