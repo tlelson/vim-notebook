@@ -8,9 +8,13 @@ With default vim and tmux or another terminal you might write in vim, then copy 
 
 ## Pre-requisites
 
+- vim with terminal `:echo has('terminal')` must be 1.
+
+**NeoVim is not supported: It does not implement the vimscript builtins required.**
+
 You should know vim basics such as changing focus between vim splits, entering and exiting insert mode.
 
-> Note that `<Esc>` does not exit insert mode in a vim terminal but `<C-\><C-n>` does.  Personally, I have remapped this pattern to `<Esc>` in terminal mode with `tnoremap <Esc> <C-\><C-n>`.
+> Note that `<Esc>` does not exit insert mode in a vim terminal but `<C-\><C-n>` does.  
 
 You should also know what your _mapleader_ is.  If you don't, use the command `:set mapleader?` to print it.  If it errors it is the vim default, backslash character `\`.
 
@@ -18,7 +22,7 @@ You should also know what your _mapleader_ is.  If you don't, use the command `:
 
 Here is some code you can try out.  Open this file in vim:
 
-Visual highlight the following lines and run the command `:RunCell`
+Visual highlight the following lines and run the command `:NotebookRunCell`
 
 ```bash
 TMP_PATH=/tmp
@@ -31,11 +35,11 @@ Now go up to the line with `ls ~` and modify it in someway, for example add `-a`
 
 Change to the terminal split (`<C-w>j`) and close it with `exit` or similar.
 
-Now open up a python shell with `:OpenTerminal python`.
+Now open up a python shell with `:NotebookTerminal python`.
 
 ### Using the key mapping
 
-`:RunCell` is mapped to `<leader>r` on a selection or on an individual line, without a selection. So position your cursor on the first line of python and hit `<leader>r` 4 times.
+`:NotebookRunCell` is mapped to `<leader>r` on a selection or on an individual line, without a selection. So position your cursor on the first line of python and hit `<leader>r` 4 times.
 
 ```python
 import json 
@@ -48,10 +52,10 @@ d['name']
 
 ## File-type Recognition
 
-If the above python code was in a file that vim recognised as `filetype=python`, `:RunCell` (or the mapped keys) will automatically start an `ipython` shell to run the code.  If `ipython` is not found, it will start a `python` shell. If no suitable shells can be found for the _filetype_, the default system shell will be used.
+If the above python code was in a file that vim recognised as `filetype=python`, `:NotebookRunCell` (or the mapped keys) will automatically start an `ipython` shell to run the code.  If `ipython` is not found, it will start a `python` shell. If no suitable shells can be found for the _filetype_, the default system shell will be used.
 
-You can start any shell you want with `:OpenTerminal <shell name>`, e.g `:OpenTerminal node` .  Once the shell is open, selected code will go to it for execution without changing focus.  Having multiple shell types open is not supported by Vim-Notebook.
+You can start any shell you want with `:NotebookTerminal <shell name>`, e.g `:NotebookTerminal node` .  Once the shell is open, selected code will go to it for execution without changing focus.  Having multiple shell types open is not supported by Vim-Notebook.
 
-**N.B If you move to the shell buffer and exit insert mode. Any new lines you sent to it with `:RunCell` will not be displayed until the buffer is back in insert mode (I'm going to fix this.))**
+**N.B If you move to the shell buffer and exit insert mode. Any new lines you sent to it with `:NotebookRunCell` will not be displayed until the buffer is back in insert mode (I'm going to fix this.))**
 
-By default the terminal will start below the current file but if you want to start it to the right, provide the standard vim modifier `vertical`. E.g `:vert OpenTerminal bash`. If the default system shell is `bash` then this is equivalent to `vert OpenTerminal`. 
+By default the terminal will start below the current file but if you want to start it to the right, provide the standard vim modifier `vertical`. E.g `:vert NotebookTerminal bash`. If the default system shell is `bash` then this is equivalent to `vert NotebookTerminal`. 
