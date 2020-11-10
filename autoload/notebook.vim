@@ -2,27 +2,28 @@
 " Last Change:	2020 Jul 07
 " Maintainer:	Tim Elson <tpj800@gmail.com>
 " License:	This file is placed in the public domain.
- 
+
 
 " Define shell names for filetypes. Order sets the priority
 " TODO: Allow user settings to augment this map
 let s:shell = { 'python' : ['ipython', 'python'], 'javascript': ['node'] }
+let s:shell_args = { 'ipython': ' --no-autoindent'}
 
 function! s:safe_open_term(mods) abort
 	let term_bufnr = -1
-	 
+
 	" Use default if can't guess
 	if has_key(s:shell, &filetype) == 0
 		return s:unsafe_term('', a:mods)
 	endif
 
-	let shells = get(s:shell, &filetype, ['']) 
-	for shell in get(s:shell, &filetype, ['']) 
+	let shells = get(s:shell, &filetype, [''])
+	for shell in get(s:shell, &filetype, [''])
 		if executable(shell) > 0
 			return s:unsafe_term(shell, a:mods)
 		endif
 	endfor
-	 
+
 	call s:echoError("No suitable shell found for '" . &filetype. " from: " . join(shells, ", "))
 	return term_bufnr
 endfunction
@@ -47,7 +48,7 @@ function! notebook#run_cell(startline, endline) abort
 	normal j
 endfunction
 
-" Have to check that `shell` exists first because even if `bash` 
+" Have to check that `shell` exists first because even if `bash`
 " doesn't exist it will open a terminal and use it as a command.
 " In this case, the terminal will exist and will get a buffer.
 function! s:unsafe_term(shell, mods) abort
@@ -66,13 +67,19 @@ function! s:unsafe_term(shell, mods) abort
 		let term_cmd = term_cmd . "++rows=15 "
 	endif
 
+	" Work out shell command - allow args
+	let shell_cmd = a:shell
+	if has_key(s:shell_args, a:shell) != 0
+	    let shell_cmd = shell_cmd . ' '. s:shell_args[a:shell]
+	endif
+
 	" open shell
-	execute a:mods . term_cmd . a:shell 
+	silent execute a:mods . term_cmd . shell_cmd
 	" Set buffer name so we can find it again
 	let bufname = "notebookterm-" . a:shell
 	execute "file! " . bufname
 	" Jump back to previous split
-	execute "normal! \<C-w>p"  
+	execute "normal! \<C-w>p"
 	"return bufnr("$")
 	return bufnr(bufname) " -1 if not. (this never happens unfortunately)
 endfunction
@@ -99,7 +106,7 @@ fun! s:echoError(msg)
     "call s:echo(a:msg)
     echo a:msg
     echohl normal
-endf 
+endf
 
 " TODO:
 "  - Make `RunCell` put the terminal into insert mode before executing code
