@@ -38,12 +38,18 @@ function! notebook#run_cell(startline, endline) abort
 	endif
 
 	" 1. Get range of text to send to terminal
-	let raw = join(getline(a:startline, a:endline), "\n") . "\n"
+	let raw = ""
+	for line in getline(a:startline, a:endline)
+	    if trim(line) ==# ""
+		continue " remove empty line, it will execute prior lines immediately
+	    endif
+	    let raw = raw . trim(line, "\n", 2) . "\n"
+	endfor
 
 	" 2. Copy text in selected range to variable
 	" How to stop text appearing before shell loads ?
 	" TODO: Check if terminal is in INSERT mode, if not, make it
-	call term_sendkeys(term_bufnr, raw)
+	call term_sendkeys(term_bufnr, raw . "\n") " extra newline here to make sure python executes
 	call term_wait(term_bufnr)
 	normal j
 endfunction
