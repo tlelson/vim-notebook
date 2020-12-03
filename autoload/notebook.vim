@@ -28,6 +28,20 @@ function! s:safe_open_term(mods) abort
 	return term_bufnr
 endfunction
 
+function! notebook#clear_term() abort
+	let term_bufnr = bufnr("notebookterm-")
+	call term_sendkeys(term_bufnr, "clear" . "\n")
+	call term_wait(term_bufnr)
+	normal j
+endfunction
+
+function! notebook#quit_term() abort
+	let term_bufnr = bufnr("notebookterm-")
+	call term_sendkeys(term_bufnr, "exit" . "\n")
+	call term_wait(term_bufnr)
+	normal j
+endfunction
+
 " Sends the currently selected visual selection to the terminal
 function! notebook#run_cell(startline, endline) abort
 	" 0. Check if shell bufer open, if not open one

@@ -12,3 +12,15 @@ if !hasmapto(':NotebookRunCell')
 	vnoremap <Leader>r :NotebookRunCell "<CR>
 endif
 
+command -range NotebookClear call notebook#clear_term()
+if !hasmapto(':NotebookClear')
+	nnoremap <C-l> :NotebookClear "<CR>
+	vnoremap <C-l> :NotebookClear "<CR>
+endif
+
+command -range NotebookQuit call notebook#quit_term()
+if !hasmapto(':NotebookQuit')
+	nnoremap <Leader>q :NotebookQuit "<CR>
+	vnoremap <Leader>q :NotebookQuit "<CR>
+endif
+
