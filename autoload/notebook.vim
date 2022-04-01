@@ -8,6 +8,9 @@
 " TODO: Allow user settings to augment this map
 let s:shell = { 'python' : ['ipython', 'python'], 'javascript': ['node'] }
 let s:shell_args = { 'ipython': ' --no-autoindent'}
+let s:neovim_jobid = -1 " This is set when the terminal buffer is started.
+let s:terminal_buffer_number = -1
+let s:terminal_buffer_name = "NO_BUFFER_NAME"
 
 function! s:safe_open_term(mods) abort
 	let term_bufnr = -1
@@ -29,17 +32,18 @@ function! s:safe_open_term(mods) abort
 endfunction
 
 function! notebook#clear_term() abort
-	let term_bufnr = bufnr("notebookterm-")
-	call term_sendkeys(term_bufnr, "clear" . "\n")
-	call term_wait(term_bufnr)
-	normal j
+	if has('nvim')
+		call chansend(s:neovim_jobid, "clear" . "\n")
+	else
+		let term_bufnr = bufnr("notebookterm-")
+		call term_sendkeys(term_bufnr, "clear" . "\n")
+		call term_wait(term_bufnr)
+		normal j
+	endif
 endfunction
 
 function! notebook#quit_term() abort
-	let term_bufnr = bufnr("notebookterm-")
-	call term_sendkeys(term_bufnr, "exit" . "\n")
-	call term_wait(term_bufnr)
-	normal j
+	execute "bdelete! " . s:terminal_buffer_number
 endfunction
 
 " Sends the currently selected visual selection to the terminal
@@ -54,17 +58,22 @@ function! notebook#run_cell(startline, endline) abort
 	" 1. Get range of text to send to terminal
 	let raw = ""
 	for line in getline(a:startline, a:endline)
-	    if trim(line) ==# ""
-		continue " remove empty line, it will execute prior lines immediately
-	    endif
-	    let raw = raw . trim(line, "\n", 2) . "\n"
+		if trim(line) ==# ""
+			continue " remove empty line, it will execute prior lines immediately
+		endif
+		let raw = raw . trim(line, "\n", 2) . "\n"
 	endfor
 
 	" 2. Copy text in selected range to variable
 	" How to stop text appearing before shell loads ?
 	" TODO: Check if terminal is in INSERT mode, if not, make it
-	call term_sendkeys(term_bufnr, raw . "\n") " extra newline here to make sure python executes
-	call term_wait(term_bufnr)
+	if has('nvim')
+		call chansend(s:neovim_jobid, raw . "\n")
+	else
+		" extra newline here to make sure python executes
+		call term_sendkeys(term_bufnr, raw . "\n")
+		call term_wait(term_bufnr)
+	endif
 	normal j
 endfunction
 
@@ -81,33 +90,61 @@ function! s:unsafe_term(shell, mods) abort
 		endif
 	endfor
 
-	" Work out terminal command
-	let term_cmd = " belowright terminal ++close "
-	if horisontal_split
-		let term_cmd = term_cmd . "++rows=15 "
-	endif
-
-	" Work out shell command - allow args
+	" If the shell needs special arguments; add them here
 	let shell_cmd = a:shell
 	if has_key(s:shell_args, a:shell) != 0
-	    let shell_cmd = shell_cmd . ' '. s:shell_args[a:shell]
+		let shell_cmd = shell_cmd . ' '. s:shell_args[a:shell]
+	endif
+
+	let bufname = "notebookterm-" . a:shell
+
+	" The terminal commands are wildly different between the two streams
+	" of vim
+	if has('nvim')
+		let term_cmd = "vsplit term://"
+		if horisontal_split
+			let term_cmd = "below 15split term://"
+		endif
+	else " Default to standard VIM
+		let term_cmd = " belowright terminal ++close "
+		if horisontal_split
+			let term_cmd = term_cmd . "++rows=15 "
+		endif
 	endif
 
 	" open shell
 	silent execute a:mods . term_cmd . shell_cmd
 	" Set buffer name so we can find it again
-	let bufname = "notebookterm-" . a:shell
 	execute "file! " . bufname
-	" Jump back to previous split
+
+	if has('nvim')
+		" For neovim we have to set a few local buffer settings to replicate
+		" std vim term settings.
+		set nu! " Disable line numbers
+		let s:neovim_jobid = b:terminal_job_id
+		let s:neovim_pid = b:terminal_job_pid
+	endif
+
+	"" Jump back to previous split
 	execute "normal! \<C-w>p"
-	"return bufnr("$")
+
+	let s:terminal_buffer_name = bufname
+	let s:terminal_buffer_number = bufnr(bufname)
+
 	return bufnr(bufname) " -1 if not. (this never happens unfortunately)
 endfunction
 
 function! notebook#terminal_start(shell, mods) abort
 	let term_bufnr = -1
-	if a:shell !=# '' && executable(a:shell) < 1
-		call s:echoError("Failed to find shell: " . a:shell)
+	let shell = a:shell
+
+	" Set default shell
+	if shell ==# ''
+		let shell = 'bash'
+	endif
+
+	if executable(shell) < 1
+		call s:echoError("Failed to find shell: " . shell)
 		return term_bufnr
 	endif
 
@@ -117,15 +154,15 @@ function! notebook#terminal_start(shell, mods) abort
 		execute "bdelete! " . term_bufnr
 	endif
 
-	return s:unsafe_term(a:shell, a:mods)
+	return s:unsafe_term(shell, a:mods)
 endfunction
 
 " Stole this function from NERDTree
 fun! s:echoError(msg)
-    echohl errormsg
-    "call s:echo(a:msg)
-    echo a:msg
-    echohl normal
+	echohl errormsg
+	"call s:echo(a:msg)
+	echo a:msg
+	echohl normal
 endf
 
 " TODO:
@@ -134,4 +171,3 @@ endf
 " Extension bits
 " - detect shell type from code (first filetype setting then maybe advanced
 "   analysis?!)
-
