@@ -101,9 +101,9 @@ function! s:unsafe_term(shell, mods) abort
 	" The terminal commands are wildly different between the two streams
 	" of vim
 	if has('nvim')
-		let term_cmd = "vsplit term://"
+		let term_cmd = " split term://"
 		if horisontal_split
-			let term_cmd = "below 15split term://"
+			let term_cmd = " below 15split term://"
 		endif
 	else " Default to standard VIM
 		let term_cmd = " belowright terminal ++close "
