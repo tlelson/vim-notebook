@@ -31,4 +31,8 @@ if has('nvim')
 	:tnoremap <C-w>j <C-\><C-N><C-w>j
 	:tnoremap <C-w>k <C-\><C-N><C-w>k
 	:tnoremap <C-w>l <C-\><C-N><C-w>l
+
+	" This means that the split is in normal mode when its left. Change this
+	" so that it is always in insert mode when we enter.
+	autocmd BufEnter notebookterm-* startinsert
 endif
