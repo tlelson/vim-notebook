@@ -32,6 +32,9 @@ if has('nvim')
 	:tnoremap <C-w>k <C-\><C-N><C-w>k
 	:tnoremap <C-w>l <C-\><C-N><C-w>l
 
+	" Restore default bash behaviour here
+	:tnoremap <C-l>  clear<CR>
+
 	" This means that the split is in normal mode when its left. Change this
 	" so that it is always in insert mode when we enter.
 	autocmd BufEnter notebookterm-* startinsert
