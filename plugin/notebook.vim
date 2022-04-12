@@ -20,8 +20,8 @@ endif
 
 command -range NotebookQuit call notebook#quit_term()
 if !hasmapto(':NotebookQuit')
-	nnoremap <Leader>q :NotebookQuit <CR>
-	vnoremap <Leader>q :NotebookQuit <CR>
+	nnoremap <Leader>nq :NotebookQuit <CR>
+	vnoremap <Leader>nq :NotebookQuit <CR>
 endif
 
 " Neovim messes with the standard vim mappings. Restore them.
