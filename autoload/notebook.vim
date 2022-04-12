@@ -120,7 +120,7 @@ function! s:unsafe_term(shell, mods) abort
 	if has('nvim')
 		" For neovim we have to set a few local buffer settings to replicate
 		" std vim term settings.
-		set nu! " Disable line numbers
+		set nonu " Disable line numbers
 		let s:neovim_jobid = b:terminal_job_id
 		let s:neovim_pid = b:terminal_job_pid
 	endif
