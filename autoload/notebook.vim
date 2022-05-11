@@ -11,6 +11,7 @@ let s:shell_args = { 'ipython': ' --no-autoindent'}
 let s:neovim_jobid = -1 " This is set when the terminal buffer is started.
 let s:terminal_buffer_number = -1
 let s:terminal_buffer_name = "NO_BUFFER_NAME"
+let s:last_command = "pwd\n"
 
 function! s:safe_open_term(mods) abort
 	let term_bufnr = -1
@@ -69,6 +70,20 @@ function! notebook#run_cell(startline, endline) abort
 	" TODO: Check if terminal is in INSERT mode, if not, make it
 	if has('nvim')
 		call chansend(s:neovim_jobid, raw . "\n")
+	else
+		" extra newline here to make sure python executes
+		call term_sendkeys(term_bufnr, raw . "\n")
+		call term_wait(term_bufnr)
+	endif
+
+	let s:last_command = raw
+	normal j
+endfunction
+
+" Re-runs previous command
+function! notebook#re_run() abort
+	if has('nvim')
+		call chansend(s:neovim_jobid, s:last_command . "\n")
 	else
 		" extra newline here to make sure python executes
 		call term_sendkeys(term_bufnr, raw . "\n")
