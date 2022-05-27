@@ -62,6 +62,10 @@ function! notebook#run_cell(startline, endline) abort
 		if trim(line) ==# ""
 			continue " remove empty line, it will execute prior lines immediately
 		endif
+
+		" Prevent tabs from displaying autocompletion results
+		let line = substitute(line, "\t", "    ", "g")
+
 		let raw = raw . trim(line, "\n", 2) . "\n"
 	endfor
 
