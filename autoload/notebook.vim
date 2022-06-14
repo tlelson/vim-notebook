@@ -34,7 +34,7 @@ endfunction
 
 function! notebook#clear_term() abort
 	if has('nvim')
-		call chansend(s:neovim_jobid, "clear" . "\n")
+		call chansend(s:neovim_jobid, "\<c-l>")
 	else
 		let term_bufnr = bufnr("notebookterm-")
 		call term_sendkeys(term_bufnr, "clear" . "\n")
